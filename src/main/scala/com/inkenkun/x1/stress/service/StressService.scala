@@ -7,6 +7,7 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.math._
+import scala.util.Random
 
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
@@ -34,9 +35,22 @@ trait Service extends Protocols {
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: Materializer
 
-  val normalStore: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val weakStore  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val normalStore1: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
+  val normalStore2: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
+  val normalStore3: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
+  val normalStore4: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
+  val normalStore5: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
 
+  val weakStore1  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val weakStore2  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val weakStore3  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val weakStore4  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val weakStore5  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+
+  val normalRxStore: mutable.HashMap[String, Either[String, String]]     = mutable.HashMap.empty[String, Either[String, String]]
+  val weakRxStore  : mutable.WeakHashMap[String, Either[String, String]] = mutable.WeakHashMap.empty[String, Either[String, String]]
+
+  lazy val random  = new Random
   lazy val timeout = config.getDuration( "service.timeout", TimeUnit.SECONDS ) second
 
   def config: Config
@@ -46,19 +60,45 @@ trait Service extends Protocols {
     val start = System.currentTimeMillis()
 
     /** シグモイド計算 */
-    val sigs = ( 1 to 10000 ).map { x =>
+    val sigs = ( 1 to 1000 ).map { x =>
       BigDecimal( ( tanh( x / 20000d ) + 1 ) / 2 )
     }
 
-    /** Mapにデータを格納する */
-    val s = if ( isNormal ) normalStore else weakStore
+    val n = random.nextInt( 2 ) + 1
 
-    sigs.foldLeft( s ) { ( acc, n ) =>
+    /** Mapにデータを格納する */
+    val ss = if ( isNormal ) {
+      n match {
+        case 1 => normalStore1
+        case 2 => normalStore2
+        case 3 => normalStore3
+        case 4 => normalStore4
+        case 5 => normalStore5
+      }
+    } else {
+      n match {
+        case 1 => weakStore1
+        case 2 => weakStore2
+        case 3 => weakStore3
+        case 4 => weakStore4
+        case 5 => weakStore5
+      }
+    }
+
+    sigs.foldLeft( ss ) { ( acc, n ) =>
       acc += ( UUID.randomUUID().toString -> n )
     }
 
     /** 正規表現を使ってごにょごにょする */
-    Future.successful( rex( segment ) match {
+    val rexs = ( 1 to 1000 ).map { x =>
+      rex( segment )
+    }
+    val rs = if ( isNormal ) normalRxStore else weakRxStore
+    rexs.foldLeft( rs ) { ( acc, n ) =>
+      acc += ( UUID.randomUUID().toString -> n )
+    }
+
+    Future.successful( rexs.head match {
       case Right( message ) => Right( Message( message, System.currentTimeMillis() - start ) )
       case Left( error ) => Left( Message( error, System.currentTimeMillis() - start ) )
     } )
