@@ -35,17 +35,17 @@ trait Service extends Protocols {
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: Materializer
 
-  val normalStore1: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore2: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore3: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore4: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore5: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
+  val normalStore1: mutable.HashMap[String, Double]     = mutable.HashMap.empty[String, Double]
+  val normalStore2: mutable.HashMap[String, Double]     = mutable.HashMap.empty[String, Double]
+  val normalStore3: mutable.HashMap[String, Double]     = mutable.HashMap.empty[String, Double]
+  val normalStore4: mutable.HashMap[String, Double]     = mutable.HashMap.empty[String, Double]
+  val normalStore5: mutable.HashMap[String, Double]     = mutable.HashMap.empty[String, Double]
 
-  val weakStore1  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore2  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore3  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore4  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore5  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val weakStore1  : mutable.WeakHashMap[String, Double] = mutable.WeakHashMap.empty[String, Double]
+  val weakStore2  : mutable.WeakHashMap[String, Double] = mutable.WeakHashMap.empty[String, Double]
+  val weakStore3  : mutable.WeakHashMap[String, Double] = mutable.WeakHashMap.empty[String, Double]
+  val weakStore4  : mutable.WeakHashMap[String, Double] = mutable.WeakHashMap.empty[String, Double]
+  val weakStore5  : mutable.WeakHashMap[String, Double] = mutable.WeakHashMap.empty[String, Double]
 
   val normalRxStore: mutable.HashMap[String, Either[String, String]]     = mutable.HashMap.empty[String, Either[String, String]]
   val weakRxStore  : mutable.WeakHashMap[String, Either[String, String]] = mutable.WeakHashMap.empty[String, Either[String, String]]
@@ -61,7 +61,7 @@ trait Service extends Protocols {
 
     /** シグモイド計算 */
     val sigs = ( 1 to 1000 ).map { x =>
-      BigDecimal( ( tanh( x / 20000d ) + 1 ) / 2 )
+      ( tanh( x / 20000d ) + 1 ) / 2
     }
 
     val n = random.nextInt( 2 ) + 1
