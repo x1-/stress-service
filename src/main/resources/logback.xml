@@ -11,7 +11,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/stress-service/log_%d{yyyy-MM-dd-HH}.log</fileNamePattern>
+            <fileNamePattern>./logs/service_%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>5</maxHistory>
         </rollingPolicy>
         <encoder>
