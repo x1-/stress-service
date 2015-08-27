@@ -4,6 +4,7 @@ import java.util.UUID
 import java.util.concurrent.{TimeoutException, TimeUnit}
 
 import scala.collection.mutable
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.math._
@@ -35,23 +36,24 @@ trait Service extends Protocols {
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: Materializer
 
-  val normalStore1: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore2: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore3: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore4: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
-  val normalStore5: mutable.HashMap[String, BigDecimal]     = mutable.HashMap.empty[String, BigDecimal]
+  val normalStore1: mutable.HashMap[String, String]     = mutable.HashMap.empty[String, String]
+  val normalStore2: mutable.HashMap[String, String]     = mutable.HashMap.empty[String, String]
+  val normalStore3: mutable.HashMap[String, String]     = mutable.HashMap.empty[String, String]
+  val normalStore4: mutable.HashMap[String, String]     = mutable.HashMap.empty[String, String]
+  val normalStore5: mutable.HashMap[String, String]     = mutable.HashMap.empty[String, String]
 
-  val weakStore1  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore2  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore3  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore4  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
-  val weakStore5  : mutable.WeakHashMap[String, BigDecimal] = mutable.WeakHashMap.empty[String, BigDecimal]
+  val weakStore1  : mutable.WeakHashMap[String, String] = mutable.WeakHashMap.empty[String, String]
+  val weakStore2  : mutable.WeakHashMap[String, String] = mutable.WeakHashMap.empty[String, String]
+  val weakStore3  : mutable.WeakHashMap[String, String] = mutable.WeakHashMap.empty[String, String]
+  val weakStore4  : mutable.WeakHashMap[String, String] = mutable.WeakHashMap.empty[String, String]
+  val weakStore5  : mutable.WeakHashMap[String, String] = mutable.WeakHashMap.empty[String, String]
 
   val normalRxStore: mutable.HashMap[String, Either[String, String]]     = mutable.HashMap.empty[String, Either[String, String]]
   val weakRxStore  : mutable.WeakHashMap[String, Either[String, String]] = mutable.WeakHashMap.empty[String, Either[String, String]]
 
-  lazy val random  = new Random
-  lazy val timeout = config.getDuration( "service.timeout", TimeUnit.SECONDS ) second
+  lazy val random    = new Random
+  lazy val timeout   = config.getDuration( "service.timeout", TimeUnit.SECONDS ) second
+  lazy val dummyData = config.getStringList( "service.dummy.data" )
 
   def config: Config
   val logger: LoggingAdapter
@@ -59,14 +61,9 @@ trait Service extends Protocols {
   def process( segment: String, isNormal: Boolean = true ): Future[Either[Message, Message]] = {
     val start = System.currentTimeMillis()
 
-    /** シグモイド計算 */
-    val sigs = ( 1 to 1000 ).map { x =>
-      BigDecimal( ( tanh( x / 20000d ) + 1 ) / 2 )
-    }
+    val n = random.nextInt( 4 ) + 1
 
-    val n = random.nextInt( 2 ) + 1
-
-    /** Mapにデータを格納する */
+    /** データを格納するMapを選択する */
     val ss = if ( isNormal ) {
       n match {
         case 1 => normalStore1
@@ -85,9 +82,13 @@ trait Service extends Protocols {
       }
     }
 
-    sigs.foldLeft( ss ) { ( acc, n ) =>
-      acc += ( UUID.randomUUID().toString -> n )
-    }
+    // 100byte * 1000 = 100kbの文字列を生成
+    val dummyText = ( 1 to 1000 ).foldLeft( new StringBuilder ) { ( acc, n ) =>
+      val rn = random.nextInt( 10 )
+      acc ++= dummyData( rn )
+    } toString
+
+    ss += ( UUID.randomUUID().toString -> dummyText )
 
     /** 正規表現を使ってごにょごにょする */
     val rexs = ( 1 to 1000 ).map { x =>
