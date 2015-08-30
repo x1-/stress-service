@@ -91,7 +91,7 @@ trait Service extends Protocols {
     ss += ( UUID.randomUUID().toString -> dummyText )
 
     /** 正規表現を使ってごにょごにょする */
-    val rexs = ( 1 to 1000 ).map { x =>
+    val rexs = ( 1 to 10 ).map { x =>
       rex( segment )
     }
     val rs = if ( isNormal ) normalRxStore else weakRxStore
